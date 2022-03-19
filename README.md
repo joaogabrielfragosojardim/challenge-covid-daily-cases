@@ -1,16 +1,22 @@
 # DevFinder
 
 <div display="flex">
-<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/joaogabrielfragosojardim/devfinder">
-<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/joaogabrielfragosojardim/devfinder">
+<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/joaogabrielfragosojardim/challenge-covid-daily-cases">
 <div/>
 <br/>
-<img src="https://github.com/joaogabrielfragosojardim/devfinder/blob/master/src/assets/darkTheme.png" alt="thumbnail">
+<img src="https://github.com/joaogabrielfragosojardim/challenge-covid-daily-cases/blob/main/public/painel.png" alt="thumbnail">
 <br/>
-<br/>
-<img src="https://github.com/joaogabrielfragosojardim/devfinder/blob/master/src/assets/lightTheme.png" alt="thumbnail">
 
-Aplicativo capaz de buscar usuários pela sua tag no github, a aplicação é capaz de exibir algumas informações a respeito de desenolvedor e trocar entre temas dark e light
+Página que demonstra os dados das variantes do covid de acordo com a data e o pais
+ 
+ ```
+ This is a challenge by Coodesh
+ ```
+ Link da apresentação
+ 
+ ```
+ https://www.loom.com/share/44d9bab6af194dacbe916707d0ab3427
+ ```
 
 ## 👾 Tecnologias
 
