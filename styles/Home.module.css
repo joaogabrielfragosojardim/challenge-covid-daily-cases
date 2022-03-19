@@ -1,4 +1,9 @@
-.title {
-  text-align: center;
+.header {
   margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header h1 {
+  justify-self: center;
 }

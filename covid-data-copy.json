@@ -1,11 +1,14 @@
 {
     "covidData": [
-        {"location":"Brazil","date":"2020-05-11","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
-        {"location":"Brazil","date":"2020-05-11","variant":"Beta","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
-        {"location":"Brazil","date":"2020-05-11","variant":"Delta","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
-        {"location":"USA","date":"2020-05-11","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
-        {"location":"USA","date":"2020-05-11","variant":"Beta","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
-        {"location":"USA","date":"2020-05-11","variant":"Delta","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"}
+        {"location":"Brazil","date":"2020-05-09","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-05-14","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-05-15","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-06-09","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-07-14","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-08-15","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"}, 
+        {"location":"Brazil","date":"2020-09-14","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"},
+        {"location":"Brazil","date":"2020-10-15","variant":"Alpha","num_sequences":"0","perc_sequences":"0.0","num_sequences_total":"311"}
+
           ]       
 }
 

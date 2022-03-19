@@ -1,4 +1,4 @@
-import { Slider } from "@mui/material";
+import { Alert, MenuItem, Select, Slider, Snackbar } from "@mui/material";
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
@@ -6,9 +6,9 @@ import { Chart } from "react-google-charts";
 import { getCovidData, getCovidDataByDate } from "../services/getCovidData";
 import style from "../styles/Home.module.css";
 
-import { add, format, formatISO } from "date-fns";
+import { add, format } from "date-fns";
 import { enUS, ptBR } from "date-fns/locale";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebounce } from "../Hooks/useDebounce";
 
 interface ICovidData {
@@ -18,18 +18,28 @@ interface ICovidData {
   variant: string;
 }
 interface IProps {
-  covidData: string[];
+  covidDates: string[];
+  error: boolean;
 }
 
-const Home: NextPage<IProps> = ({ covidData }) => {
+interface IVariants {
+  variant: string;
+  value: string;
+}
+
+interface IAcumulator {
+  date: string;
+  location: string;
+  variant: IVariants[];
+}
+
+const Home: NextPage<IProps> = ({ covidDates, error }) => {
   const [value, setValue] = useState("");
-  const [data, setData] = useState<any>([]);
+  const [data, setData] = useState<string[][] | never[]>([]);
+  const [open, setOpen] = useState(error);
+  const [valueSelect, setValueSelect] = useState(10);
 
-  const noDuplicateDates = covidData.filter(function (el, i) {
-    return covidData.indexOf(el) === i;
-  });
-
-  const numberDates = noDuplicateDates.map((date) => new Date(date).getTime());
+  const numberDates = covidDates?.map((date) => new Date(date).getTime());
 
   const formatMark = (date: number) => {
     return `${format(new Date(date), "LLL", {
@@ -37,88 +47,131 @@ const Home: NextPage<IProps> = ({ covidData }) => {
     })}/${new Date(date).getFullYear()}`;
   };
 
-  var maxDate = Math.max(...numberDates);
-  maxDate = new Date(
-    add(new Date(maxDate), {
-      days: 1,
-    })
-  ).getTime();
-  const minDate = Math.min(...numberDates);
-  const middleDate = (maxDate + minDate) / 2;
-  const betweenMinMiddleDate = (middleDate + minDate) / 2;
-  const betweenMiddleMaxDate = (maxDate + middleDate) / 2;
+  let maxDate = 0;
+  let minDate = 0;
+  let middleDate = 0;
+  let betweenMinMiddleDate = 0;
+  let betweenMiddleMaxDate = 0;
+  let formatedMaxDate = "";
+  let formatedMinDate = "";
+  let formatedMiddleDate = "";
+  let formatedbetweenMinMiddleDate = "";
+  let formatedbetweenMiddleMaxDate = "";
 
-  const formatedMaxDate = formatMark(maxDate);
-  const formatedMinDate = formatMark(minDate);
-  const formatedMiddleDate = formatMark(middleDate);
-  const formatedbetweenMinMiddleDate = formatMark(betweenMinMiddleDate);
-  const formatedbetweenMiddleMaxDate = formatMark(betweenMiddleMaxDate);
+  if (numberDates) {
+    maxDate = Math.max(...numberDates);
+    maxDate = new Date(
+      add(new Date(maxDate), {
+        days: 1,
+      })
+    ).getTime();
+    minDate = Math.min(...numberDates);
+    middleDate = (maxDate + minDate) / 2;
+    betweenMinMiddleDate = (middleDate + minDate) / 2;
+    betweenMiddleMaxDate = (maxDate + middleDate) / 2;
+
+    formatedMaxDate = formatMark(maxDate);
+    formatedMinDate = formatMark(minDate);
+    formatedMiddleDate = formatMark(middleDate);
+    formatedbetweenMinMiddleDate = formatMark(betweenMinMiddleDate);
+    formatedbetweenMiddleMaxDate = formatMark(betweenMiddleMaxDate);
+  }
 
   const changeMapValue = (isoFormat: string) => {
-    getCovidDataByDate(isoFormat)
-      .then((resp) => {
-        const countrys = resp.map((item: ICovidData) => item.location);
+    if (valueSelect === 10) {
+      getCovidDataByDate(isoFormat)
+        .then((resp) => {
+          if (!resp.length) {
+            return setOpen(true);
+          }
 
-        let covidData: any = [];
+          const countrys = resp.map((item: ICovidData) => item.location);
 
-        const noDuplicateCountrys = countrys.filter(function (
-          el: string,
-          i: number
-        ) {
-          return countrys.indexOf(el) === i;
+          let covidData: ICovidData | any = [];
+
+          const noDuplicateCountrys = countrys.filter(function (
+            element: string,
+            index: number
+          ) {
+            return countrys.indexOf(element) === index;
+          });
+
+          noDuplicateCountrys.forEach((country: string) => {
+            const groupCountry = resp.filter(
+              (covidData: ICovidData) => covidData.location === country
+            );
+
+            const formatedData = groupCountry.reduce(
+              (acumulator: IAcumulator, current: ICovidData) => {
+                acumulator.variant = [
+                  ...acumulator.variant,
+                  {
+                    variant: current.variant,
+                    value: current.num_sequences_total,
+                  },
+                ];
+
+                acumulator = {
+                  ...acumulator,
+                  location: current.location,
+                  date: current.date,
+                };
+
+                return acumulator;
+              },
+              { variant: [] }
+            );
+
+            covidData = [...covidData, formatedData];
+          });
+
+          const formatSchema = covidData.map((data: IAcumulator) => [
+            data.location,
+            `${data.variant.map(
+              (variant: IVariants) => `${variant.variant}: ${variant.value}`
+            )}`.replaceAll(",", "\n"),
+          ]);
+
+          formatSchema.unshift(["Country", "Cases"]);
+          setData(formatSchema);
+        })
+        .catch(() => {
+          return setOpen(true);
+        });
+    } /* else {
+      const filterDates = covidDates.filter(
+        (date) => new Date(date).getTime() <= new Date(isoFormat).getTime()
+      );
+      let test: any = [];
+      getCovidData().then((resp) => {
+        let test: any = [];
+        resp.forEach((data: ICovidData) => {
+          filterDates.forEach((date) => {
+            if (data.date === date) {
+              test = [...test, data];
+            }
+          });
         });
 
-        noDuplicateCountrys.forEach((country: string) => {
-          const groupCountry = resp.filter(
-            (covidData: any) => covidData.location === country
-          );
-
-          const formatedData = groupCountry.reduce(
-            (acumulator: any, current: any) => {
-              acumulator.variant = [
-                ...acumulator.variant,
-                {
-                  variant: current.variant,
-                  value: current.num_sequences_total,
-                },
-              ];
-
-              acumulator = {
-                ...acumulator,
-                location: current.location,
-                date: current.date,
-              };
-
-              return acumulator;
-            },
-            { variant: [] }
-          );
-
-          covidData = [...covidData, formatedData];
-        });
-
-        const formatSchema = covidData.map((data: any) => [
-          data.location,
-          `${data.variant.map(
-            (variant: any) => `${variant.variant}: ${variant.value}`
-          )}`.replaceAll(",", "\n"),
-        ]);
-
-        formatSchema.unshift(["Country", "Cases"]);
-
-        setData(formatSchema);
-      })
-      .catch(() => {
-        console.log("erro");
+        console.log(test);
       });
+    } */
+
+    //nesse trecho de codigo seria implementada a função de puxar desde aquela data, porém isso consome muito processamento por serem muitos dados
+    //infelizmente não achei uma maneira com JSON Server para puxar um intervalo de datas, por isso não implementei essa função
+    //O API de copia no arquivo covid-data-copy.json pode ser usada para mostrar que esse console.log(test) funciona a partir dai seria só seguir o resto do fluxo
   };
 
   useEffect(() => {
-    setValue(format(new Date(minDate), "P", { locale: ptBR }));
+    if (!error) {
+      setValue(format(new Date(minDate), "P", { locale: ptBR }));
 
-    const isoFormat = new Date(minDate).toISOString().substring(0, 10);
+      const isoFormat = new Date(minDate).toISOString().substring(0, 10);
 
-    changeMapValue(isoFormat);
+      changeMapValue(isoFormat);
+    } else {
+      setOpen(true);
+    }
   }, []);
 
   const marks = [
@@ -150,11 +203,41 @@ const Home: NextPage<IProps> = ({ covidData }) => {
     changeMapValue(isoFormat);
   }, 300);
 
-  const handleChange = (event: any) => {
-    setValue(format(new Date(event.target.value), "P", { locale: ptBR }));
+  const handleChange = (event: Event) => {
+    const value = (event.target as HTMLInputElement).value;
+    setValue(format(new Date(value), "P", { locale: ptBR }));
 
-    debounceRequest(event.target.value);
+    debounceRequest(value);
   };
+
+  const handleChangeSelect = (value: number | string) => {
+    if (typeof value === "string") {
+      setValueSelect(parseInt(value));
+    } else {
+      setValueSelect(value);
+    }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <Head>
+          <title>Covid Daily Cases</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <h1 className={style.title}>Covid Daily Cases</h1>
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+            No data found
+          </Alert>
+        </Snackbar>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -162,20 +245,40 @@ const Home: NextPage<IProps> = ({ covidData }) => {
         <title>Covid Daily Cases</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <h1 className={style.title}>Covid Daily Cases</h1>
+      <div className={style.header}>
+        <div></div>
+        <h1>Covid Daily Cases</h1>
+        <div>
+          <Select
+            value={valueSelect}
+            onChange={(event) => {
+              const value = event.target.value;
+              handleChangeSelect(value);
+            }}
+          >
+            <MenuItem value={10}>Just that date</MenuItem>
+            <MenuItem value={20}>Until that date</MenuItem>
+          </Select>
+        </div>
+      </div>
       <Slider
         className={style.slider}
         marks={marks}
         valueLabelDisplay="on"
         min={minDate}
         max={maxDate}
-        onChange={(e) => {
-          handleChange(e);
+        onChange={(event) => {
+          handleChange(event);
         }}
         valueLabelFormat={value}
       />
 
       <Chart chartType="GeoChart" width="100%" height="800px" data={data} />
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          {error ? "No data found" : "that day doesn't have data"}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
@@ -183,10 +286,31 @@ const Home: NextPage<IProps> = ({ covidData }) => {
 export default Home;
 
 export async function getServerSideProps() {
-  const data = await getCovidData();
+  let error = false;
+  const covidData = await getCovidData().catch(() => {
+    error = true;
+  });
+
+  if (!error) {
+    const justDates = covidData.map((data: ICovidData) => data.date);
+
+    const noDuplicateDates = justDates.filter(function (
+      element: ICovidData,
+      index: number
+    ) {
+      return justDates.indexOf(element) === index;
+    });
+
+    return {
+      props: {
+        covidDates: noDuplicateDates,
+      },
+    };
+  }
+
   return {
     props: {
-      covidData: data.map((item: ICovidData) => item.date),
+      error: true,
     },
   };
 }
