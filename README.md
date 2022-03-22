@@ -1,4 +1,4 @@
-# DevFinder
+# Challenge Covid Daily Cases
 
 <div display="flex">
 <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/joaogabrielfragosojardim/challenge-covid-daily-cases">
